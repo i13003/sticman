@@ -5,6 +5,10 @@ import random
 import time
 
 
+
+
+
+
 class Coords:
     def __init__(self, x1=0, y1=0, x2=0, y2=0):
         self.x1 = x1
@@ -15,7 +19,7 @@ class Coords:
 def within_x(co1, co2):
     return ( co2.x1 < co1.x1 < co2.x2
                 or co2.x1 < co1.x2 < co2.x2
-                or co1.x1 < co2.x1 < co1.x1
+                or co1.x1 < co2.x1 < co1.x2
                 or co1.x1 < co2.x2 < co1.x2)
 def within_y(co1, co2):
     return ( co2.y1 < co1.y1 < co2.y2
@@ -79,10 +83,10 @@ class StickFigureSprite(Sprite):
             PhotoImage(file="figure-R2.gif"),
             PhotoImage(file="figure-R3.gif"),
         ]
-        self.image = game.canvas.create_image(200, 470,
+        self.image = game.canvas.create_image(200, 450,
                                               image=self.images_left[0],
                                               anchor='nw')
-        self.x = -2
+        self.x = 0
         self.y = 0
         self.current_image = 0
         self.current_image_add = 1
@@ -103,7 +107,7 @@ class StickFigureSprite(Sprite):
 
     def jump(self, evt):
         if self.y == 0:
-            self.y = -4
+            self.y = -6
             self.jump_count = 0
 
 
@@ -153,13 +157,19 @@ class StickFigureSprite(Sprite):
         right = True
         top = True
         bottom = True
-        falling = False
+        falling = True
         if self.y > 0 and co.y2 >= self.game.canvas_height:
             self.y = 0
             bottom = False
         elif self.y < 0 and co.y1 <= 0:
             self.y = 0
             top = False
+        if self.x > 0 and co.x2 >= self.game.canvas_width:
+            self.x = 0
+            right = False
+        elif self.x < 0 and co.x1 <= 0:
+            self.x = 0
+            left = False
         for sprite in self.game.sprites:
             if sprite == self:
                 continue
@@ -181,13 +191,27 @@ class StickFigureSprite(Sprite):
             if left and self.x < 0 and collided_left(co, sprite_co):
                 self.x = 0
                 left = False
+                if sprite.endgame:
+                    self.game.running = False
             if right and self.x > 0 and collided_right(co, sprite_co):
                 self.x = 0
                 right = False
+                if sprite.endgame:
+                    self.game.running = False
         if falling and bottom and self.y == 0 \
                 and co.y2 < self.game.canvas_height:
             self.y = 4
         self.game.canvas.move(self.image, self.x, self.y)
+
+
+
+class DoorSprite(Sprite):
+    def __init__( self, game, photo_image, x, y, width, height):
+        Sprite.__init__( self, game)
+        self.photo_image = photo_image
+        self.image = game.canvas.create_image( x, y, image=self.photo_image, anchor='nw')
+        self.coordinates = Coords( x, y, x + (width/2), y + height)
+        self.endgame = True
 
 
 class Game:
@@ -201,7 +225,7 @@ class Game:
         self.tk.update()
         self.canvas_height = 500
         self.canvas_width = 500
-        self.bg = PhotoImage(file="background.gif")
+        self.bg = PhotoImage(file="siro2.png")
         w = self.bg.width()
         h = self.bg.height()
         for x in range(0, 5):
@@ -222,28 +246,33 @@ class Game:
 
 if __name__ == '__main__':
     g = Game()
-    platform1 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
-                               0, 490, 500, 10)
-    platform2 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
-                               150, 440, 100, 10)
+
+    platform2 = PlatformSprite(g, PhotoImage(file='platform3.gif'),
+                               250, 440, 30, 10)
     platform3 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
                                300, 400, 100, 10)
     platform4 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
-                               300, 160, 100, 10)
-    platform5 = PlatformSprite(g, PhotoImage(file='platform2.gif'),
-                               175, 350, 66, 10)
+                               400, 350, 100, 10)
+    platform5 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               120, 80, 100, 10)
     platform6 = PlatformSprite(g, PhotoImage(file='platform2.gif'),
-                               50, 300, 66, 10)
-    platform7 = PlatformSprite(g, PhotoImage(file='platform2.gif'),
-                               170, 120, 166, 10)
-    platform8 = PlatformSprite(g, PhotoImage(file='platform2.gif'),
-                               45, 60, 66, 10)
-    platform9 = PlatformSprite(g, PhotoImage(file='platform3.gif'),
-                               170, 250, 32, 10)
-    platform10 = PlatformSprite(g, PhotoImage(file='platform3.gif'),
-                               230, 200, 32, 10)
+                               250, 300, 60, 10)
+    platform7 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               80, 200, 100, 10)
+    platform8 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               0, 150, 100, 10)
+    platform9 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               150, 250, 100, 10)
+    platform11 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               220, 80, 100, 10)
+    platform12 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               320, 80, 100, 10)
+    platform13 = PlatformSprite(g, PhotoImage(file='platform3.gif'),
+                               420, 80, 0, 0)
+    platform13 = PlatformSprite(g, PhotoImage(file='platform1.gif'),
+                               420, 80, 0, 10)
 
-    g.sprites.append(platform1)
+
     g.sprites.append(platform2)
     g.sprites.append(platform3)
     g.sprites.append(platform4)
@@ -252,7 +281,11 @@ if __name__ == '__main__':
     g.sprites.append(platform7)
     g.sprites.append(platform8)
     g.sprites.append(platform9)
-    g.sprites.append(platform10)
+    g.sprites.append(platform11)
+    g.sprites.append(platform12)
+    g.sprites.append(platform13)
+    door = DoorSprite(g, PhotoImage(file="door1.gif"),473, 50, 40, 35)
+    g.sprites.append(door)
     sf = StickFigureSprite(g)
     g.sprites.append(sf)
     g.tk.mainloop()
